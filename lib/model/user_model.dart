@@ -6,6 +6,7 @@ class UserModel {
   final String gender;
   final String designation;
   final String profileImage;
+  final String profilePicture;
 
   UserModel({
     required this.userID,
@@ -15,28 +16,36 @@ class UserModel {
     required this.gender,
     required this.designation,
     required this.profileImage,
+    required this.profilePicture,
   });
+
   factory UserModel.fromMap(Map<String, dynamic> map) {
+    final profile = map['profile'] ?? {};
     return UserModel(
       userID: map['userID'] ?? '',
       email: map['email'] ?? '',
-      fullName: map['profile.fullName'] ?? '',
-      dateOfBirth: map['profile.date-of-birth'] ?? '',
-      gender: map['profile.gender'] ?? '',
-      designation: map['profile.designation'] ?? '',
+      fullName: profile['fullName'] ?? '',
+      dateOfBirth: profile['dateOfBirth'] ?? '',
+      gender: profile['gender'] ?? '',
+      designation: profile['designation'] ?? '',
       profileImage: map['image'] ?? '',
+      profilePicture: map['profilePicture'] ?? '',
     );
   }
+
   Map<String, dynamic> toMap() {
     return {
       'userID': userID,
       'email': email,
       'role': "user",
-      'profile.fullName': fullName,
-      'profile.date-of-birth': dateOfBirth,
-      'profile.gender': gender,
-      'profile.designation': designation,
+      'profile': {
+        'fullName': fullName,
+        'dateOfBirth': dateOfBirth,
+        'gender': gender,
+        'designation': designation,
+      },
       'image': profileImage,
+      'profilePicture': profilePicture,
     };
   }
 }

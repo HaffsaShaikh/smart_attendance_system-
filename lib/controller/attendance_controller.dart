@@ -243,6 +243,25 @@ class AttendanceController extends GetxController {
     }
   }
 
+  Future<bool> isOnLeaveToday(String uid, DateTime today) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection("leaves")
+        .where("uid", isEqualTo: uid)
+        .where("Status", isEqualTo: "Approved")
+        .get();
+
+    for (var doc in snapshot.docs) {
+      DateTime from = (doc['fromDate'] as Timestamp).toDate();
+      DateTime to = (doc['toDate'] as Timestamp).toDate();
+      if (!today.isBefore(from) && !today.isAfter(to)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+// Existing check-in / absent logic follows
+
   /// ✅ Helpers
   bool get isCheckedInToday => todayAttendance.value?.checkInTime != null;
   bool get isCheckedOutToday => todayAttendance.value?.checkOutTime != null;

@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import 'package:smart_attendance_system/controller/attendance_controller.dart';
 import 'package:smart_attendance_system/controller/auth_controller.dart';
 import 'package:slide_to_act/slide_to_act.dart';
+import 'package:smart_attendance_system/view/leave.dart';
+import 'package:smart_attendance_system/view/profile.dart';
 import 'package:smart_attendance_system/view/records.dart';
 import 'package:intl/intl.dart';
 
@@ -21,6 +23,8 @@ class _HomescreenState extends State<Homescreen> {
 
   String? userName;
   bool isLoading = true;
+
+  int _selectedIndex = 0;
 
   @override
   void initState() {
@@ -40,205 +44,233 @@ class _HomescreenState extends State<Homescreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        automaticallyImplyLeading: false,
-        toolbarHeight: 90,
-        titleSpacing: 0,
-        title: Padding(
-          padding: const EdgeInsets.only(top: 12, left: 8, right: 8),
-          child: Row(
-            children: [
-              const SizedBox(width: 12),
-              isLoading
-                  ? const CircularProgressIndicator()
-                  : Text(
-                      userName ?? "User",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
-                    ),
-              const Spacer(),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+      // ✅ Show AppBar only for Home
+      appBar: _selectedIndex == 0
+          ? AppBar(
+              backgroundColor: Colors.white,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              title: Row(
+                children: [
+                  // Profile Icon
+                  const CircleAvatar(
+                    radius: 20,
+                    backgroundColor: Colors.grey,
+                    child: Icon(Icons.person, color: Colors.white, size: 25),
                   ),
-                ),
-                onPressed: () async {
-                  await _authController.logoutUser();
-                },
-                child: const Text(
-                  "Logout",
-                  style: TextStyle(color: Colors.white, fontSize: 15),
-                ),
+                  const SizedBox(width: 10),
+
+                  // User Name
+                  Text(
+                    userName ?? "Loading...",
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  const Spacer(),
+
+                  // Notification Icon
+                  IconButton(
+                    onPressed: () {
+                      // TODO: Notification Page
+                    },
+                    icon: const Icon(Icons.notifications_none,
+                        color: Colors.black),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            )
+          : null, // ✅ Leave & Me → no AppBar
+
+      body: _getBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+        },
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.black,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.calendar_today), label: "Leave"),
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: "Me"),
+        ],
       ),
-      body: Obx(() => SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // ✅ Check In / Check Out Cards
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildCard(
-                        icon: Icons.login,
-                        title: "Check In",
-                        time: _attendanceController
-                                    .todayAttendance.value?.checkInTime !=
-                                null
-                            ? DateFormat.jm().format(_attendanceController
-                                .todayAttendance.value!.checkInTime!)
-                            : "--:--",
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildCard(
-                        icon: Icons.logout,
-                        title: "Check Out",
-                        time: _attendanceController
-                                    .todayAttendance.value?.checkOutTime !=
-                                null
-                            ? DateFormat.jm().format(_attendanceController
-                                .todayAttendance.value!.checkOutTime!)
-                            : "--:--",
-                      ),
-                    ),
-                  ],
-                ),
+    );
+  }
 
-                const SizedBox(height: 24),
+  // ✅ Body Switcher
+  Widget _getBody() {
+    if (_selectedIndex == 0) {
+      return _homeContent();
+    } else if (_selectedIndex == 1) {
+      return const LeaveRecord(); // ✅ Leave page
+    } else {
+      return const ProfilePage(); // ✅ Profile page
+    }
+  }
 
-                // ✅ Summary Cards
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildSummaryCard(
-                        value: "${_attendanceController.workDays.value}",
-                        title: "Work Days",
+  // ✅ Full Home Content
+  Widget _homeContent() {
+    return Obx(() => SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // ✅ Check In / Check Out
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildCard(
+                      icon: Icons.login,
+                      title: "Check In",
+                      time: _attendanceController
+                                  .todayAttendance.value?.checkInTime !=
+                              null
+                          ? DateFormat.jm().format(_attendanceController
+                              .todayAttendance.value!.checkInTime!)
+                          : "--:--",
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildCard(
+                      icon: Icons.logout,
+                      title: "Check Out",
+                      time: _attendanceController
+                                  .todayAttendance.value?.checkOutTime !=
+                              null
+                          ? DateFormat.jm().format(_attendanceController
+                              .todayAttendance.value!.checkOutTime!)
+                          : "--:--",
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // ✅ Summary Cards
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildSummaryCard(
+                      value: "${_attendanceController.workDays.value}",
+                      title: "Work Days",
+                      color: Colors.blue,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildSummaryCard(
+                      value: "${_attendanceController.presentDays.value}",
+                      title: "Present",
+                      color: Colors.green,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildSummaryCard(
+                      value: "${_attendanceController.absentDays.value}",
+                      title: "Absent",
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // ✅ Activity
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    "Your Activity",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => AttendancePage(
+                            uid: FirebaseAuth.instance.currentUser!.uid,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text(
+                      "View All",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                         color: Colors.blue,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildSummaryCard(
-                        value: "${_attendanceController.presentDays.value}",
-                        title: "Present",
-                        color: Colors.green,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildSummaryCard(
-                        value: "${_attendanceController.absentDays.value}",
-                        title: "Absent",
-                        color: Colors.red,
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 24),
-
-                // ✅ Activity Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      "Your Activity",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => AttendancePage(
-                              uid: FirebaseAuth.instance.currentUser!.uid,
-                            ),
-                          ),
-                        );
-                      },
-                      child: const Text(
-                        "View All",
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.blue,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // ✅ Activity List (last 7 days)
-                ..._attendanceController.activityList.map((a) {
-                  String status = a.checkInTime != null ? "Present" : "Absent";
-                  Color color = status == "Present" ? Colors.green : Colors.red;
-                  String date = DateFormat('EEE, d MMM').format(a.date);
-
-                  return _buildActivityTile(date, status, color);
-                }).toList(),
-
-                const SizedBox(height: 24),
-
-                // ✅ Swipe Button
-                SlideAction(
-                  text: _attendanceController.isCheckedInToday &&
-                          !_attendanceController.isCheckedOutToday
-                      ? "Swipe left to Check Out"
-                      : "Swipe right to Check In",
-                  textStyle: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
                   ),
-                  outerColor: _attendanceController.isCheckedInToday &&
+                ],
+              ),
+
+              const SizedBox(height: 16),
+
+              // ✅ Show only 2 latest records
+              ..._attendanceController.activityList.take(2).map((a) {
+                String status = a.checkInTime != null ? "Present" : "Absent";
+                Color color = status == "Present" ? Colors.green : Colors.red;
+                String date = DateFormat('EEE, d MMM').format(a.date);
+
+                return _buildActivityTile(date, status, color);
+              }).toList(),
+
+              const SizedBox(height: 24),
+
+              // ✅ Slide Button
+              SlideAction(
+                text: _attendanceController.isCheckedInToday &&
+                        !_attendanceController.isCheckedOutToday
+                    ? "Slide left to Check Out"
+                    : "Slide right to Check In",
+                textStyle: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+                outerColor: _attendanceController.isCheckedInToday &&
+                        !_attendanceController.isCheckedOutToday
+                    ? Colors.red
+                    : Colors.blue,
+                innerColor: Colors.white,
+                sliderButtonIcon: Icon(
+                  _attendanceController.isCheckedInToday &&
+                          !_attendanceController.isCheckedOutToday
+                      ? Icons.logout
+                      : Icons.login,
+                  color: _attendanceController.isCheckedInToday &&
                           !_attendanceController.isCheckedOutToday
                       ? Colors.red
                       : Colors.blue,
-                  innerColor: Colors.white,
-                  sliderButtonIcon: Icon(
-                    _attendanceController.isCheckedInToday &&
-                            !_attendanceController.isCheckedOutToday
-                        ? Icons.logout
-                        : Icons.login,
-                    color: _attendanceController.isCheckedInToday &&
-                            !_attendanceController.isCheckedOutToday
-                        ? Colors.red
-                        : Colors.blue,
-                  ),
-                  sliderRotate: false,
-                  onSubmit: () async {
-                    if (_attendanceController.isCheckedInToday &&
-                        !_attendanceController.isCheckedOutToday) {
-                      await _attendanceController.checkOut();
-                    } else {
-                      await _attendanceController.checkIn();
-                    }
-                  },
                 ),
-              ],
-            ),
-          )),
-    );
+                sliderRotate: false,
+                onSubmit: () async {
+                  if (_attendanceController.isCheckedInToday &&
+                      !_attendanceController.isCheckedOutToday) {
+                    await _attendanceController.checkOut();
+                  } else {
+                    await _attendanceController.checkIn();
+                  }
+                },
+              ),
+            ],
+          ),
+        ));
   }
 
   // ✅ Check In/Out Card

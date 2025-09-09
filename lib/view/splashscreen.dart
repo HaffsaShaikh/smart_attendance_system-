@@ -7,10 +7,25 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
   @override
   void initState() {
     super.initState();
+
+    // Animation setup
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2));
+    _animation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    _controller.repeat(reverse: true); // scale up and down
+
+    // Navigate to next screen after 3 seconds
     _navigateTo();
   }
 
@@ -20,26 +35,27 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: const Color(0xFF4682B4), // blue background
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(
-              height: 250,
-              child: Image.asset(
-                'images/2.JPG',
-              ),
-            ),
-            const SizedBox(height: 30),
-            Text(
-              "Welcome to FacePoint",
-              style: const TextStyle(
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
-                color: Color(0xFF4682B4),
+            ScaleTransition(
+              scale: _animation,
+              child: SizedBox(
+                height: 100,
+                width: 250,
+                child: Image.asset(
+                  'images/logo.PNG', // updated logo
+                ),
               ),
             ),
           ],

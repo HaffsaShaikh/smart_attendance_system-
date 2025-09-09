@@ -33,8 +33,6 @@ class AuthController extends GetxController {
           Get.offAll(() => const Homescreen());
         }
       }
-
-      Get.snackbar('Login Success', 'Welcome back!');
     } on FirebaseAuthException catch (e) {
       Get.snackbar("Login Failed", e.message ?? e.toString());
     } catch (e) {
@@ -73,7 +71,8 @@ class AuthController extends GetxController {
             'gender': gender,
             'designation': designation,
           },
-          'image': '', // will be updated after upload
+          'image': '',
+          'profilePicture': '',
           'createdAt': DateTime.now(),
         });
 
@@ -84,6 +83,19 @@ class AuthController extends GetxController {
       }
     } on FirebaseAuthException catch (e) {
       Get.snackbar("Registration Failed", e.message ?? e.toString());
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    }
+  }
+
+  /// -------------------- UPDATE PROFILE PICTURE --------------------
+  Future<void> updateProfilePicture(String imageUrl) async {
+    try {
+      String uid = _auth.currentUser!.uid;
+      await _database.collection("users").doc(uid).update({
+        'profilePicture': imageUrl,
+      });
+      Get.snackbar("Success", "Profile picture updated!");
     } catch (e) {
       Get.snackbar("Error", e.toString());
     }

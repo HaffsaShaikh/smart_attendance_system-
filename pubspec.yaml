@@ -32,7 +32,6 @@ dependencies:
     sdk: flutter
 
 
-
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
@@ -49,8 +48,9 @@ dependencies:
   google_mlkit_face_detection: 
   image_picker:
   dropdown_button2: 
-  intl:
+  intl: 
   slide_to_act: 
+  font_awesome_flutter: 
 
 
 
@@ -81,9 +81,10 @@ flutter:
     - images/1screen.JSON
     - images/2screen.JSON
     - images/3screen.JSON
-    - images/2.JPG
+    - images/logo.PNG
     - images/google.JPG   
     - images/facebook.PNG
+
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
