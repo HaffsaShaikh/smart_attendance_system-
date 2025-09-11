@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_attendance_system/controller/auth_controller.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -8,6 +9,7 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final AuthController _authController = AuthController();
   // Dummy data
   String userName = "John Doe";
   String userEmail = "john.doe@email.com";
@@ -129,14 +131,20 @@ class _ProfilePageState extends State<ProfilePage> {
         padding:
             const EdgeInsets.only(left: 8.0), // left spacing same as options
         child: Row(
-          children: const [
+          children: [
             Icon(Icons.logout, color: Colors.red, size: 24),
             SizedBox(width: 12),
-            Text(
-              "Logout",
-              style: TextStyle(
-                  color: Colors.red, fontWeight: FontWeight.w600, fontSize: 18),
-            ),
+            TextButton(
+                onPressed: () {
+                  _authController.logoutUser();
+                },
+                child: Text(
+                  "Logout",
+                  style: TextStyle(
+                      color: Colors.red,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 18),
+                )),
           ],
         ),
       ),

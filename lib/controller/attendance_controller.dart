@@ -27,9 +27,7 @@ class AttendanceController extends GetxController {
   }
 
   /// ✅ Create consistent document ID with yyyy-MM-dd
-  String _getTodayKey(DateTime now) {
-    return DateFormat('yyyy-MM-dd').format(now);
-  }
+  String _getTodayKey(DateTime now) => DateFormat('yyyy-MM-dd').format(now);
 
   /// ✅ Fetch today's attendance
   Future<void> fetchTodayAttendance() async {
@@ -47,17 +45,13 @@ class AttendanceController extends GetxController {
           .doc(todayKey)
           .get();
 
-      if (doc.exists) {
-        todayAttendance.value = AttendanceModel.fromMap(doc.data()!);
+      if (doc.exists && doc.data() != null) {
+        todayAttendance.value = AttendanceModel.fromMap(doc.data()!, todayKey);
       } else {
         todayAttendance.value = AttendanceModel(
           uid: uid,
           date: now,
-          checkInTime: null,
-          checkOutTime: null,
-          faceVerified: false,
-          imageURL: null,
-          status: "Pending", // Default before 12 pm
+          status: "Pending", // Default before 12 PM
         );
 
         // ⏰ Only mark absent if it's past 12:00 PM
@@ -66,10 +60,6 @@ class AttendanceController extends GetxController {
           final absentModel = AttendanceModel(
             uid: uid,
             date: now,
-            checkInTime: null,
-            checkOutTime: null,
-            faceVerified: false,
-            imageURL: null,
             status: "Absent",
           );
 
@@ -106,7 +96,7 @@ class AttendanceController extends GetxController {
           .get();
 
       weeklyRecords.value = snapshot.docs
-          .map((doc) => AttendanceModel.fromMap(doc.data()))
+          .map((doc) => AttendanceModel.fromMap(doc.data(), doc.id))
           .toList();
 
       // ✅ Calculate summary
@@ -131,7 +121,6 @@ class AttendanceController extends GetxController {
 
       final now = DateTime.now();
       final todayKey = _getTodayKey(now);
-
       final docRef = _firestore
           .collection("attendance")
           .doc(uid)
@@ -140,8 +129,9 @@ class AttendanceController extends GetxController {
 
       final doc = await docRef.get();
 
-      if (doc.exists) {
-        final existing = AttendanceModel.fromMap(doc.data()!);
+      if (doc.exists && doc.data() != null) {
+        final existing = AttendanceModel.fromMap(doc.data()!, doc.id);
+
         if (existing.checkInTime != null) {
           Get.snackbar("Error", "You have already checked in today!");
           return;
@@ -157,35 +147,21 @@ class AttendanceController extends GetxController {
           uid: uid,
           date: existing.date,
           checkInTime: now,
-          checkOutTime: null,
-          faceVerified: false,
-          imageURL: null,
           status: "Present",
         );
       } else {
         // ✅ First time check-in (create document with status Present)
-        await docRef.set({
-          "uid": uid,
-          "date": Timestamp.fromDate(now),
-          "checkInTime": Timestamp.fromDate(now),
-          "checkOutTime": null,
-          "faceVerified": false,
-          "imageURL": null,
-          "status": "Present",
-        });
-
-        todayAttendance.value = AttendanceModel(
+        final newRecord = AttendanceModel(
           uid: uid,
           date: now,
           checkInTime: now,
-          checkOutTime: null,
-          faceVerified: false,
-          imageURL: null,
           status: "Present",
         );
+
+        await docRef.set(newRecord.toMap());
+        todayAttendance.value = newRecord;
       }
 
-      // ✅ Refresh weekly summary
       fetchWeeklyAttendance();
     } catch (e) {
       print("Error during check-in: $e");
@@ -201,7 +177,6 @@ class AttendanceController extends GetxController {
 
       final now = DateTime.now();
       final todayKey = _getTodayKey(now);
-
       final docRef = _firestore
           .collection("attendance")
           .doc(uid)
@@ -210,17 +185,15 @@ class AttendanceController extends GetxController {
 
       final doc = await docRef.get();
 
-      if (!doc.exists) {
+      if (!doc.exists || doc.data() == null) {
         Get.snackbar("Error", "You must check in first!");
         return;
       }
 
-      final existing = AttendanceModel.fromMap(doc.data()!);
-      if (existing.checkOutTime != null) {
-        return; // Already checked out
-      }
+      final existing = AttendanceModel.fromMap(doc.data()!, doc.id);
 
-      // ✅ Update checkout (status remains Present)
+      if (existing.checkOutTime != null) return; // Already checked out
+
       await docRef.update({
         "checkOutTime": Timestamp.fromDate(now),
         "status": "Present",
@@ -231,8 +204,6 @@ class AttendanceController extends GetxController {
         date: existing.date,
         checkInTime: existing.checkInTime,
         checkOutTime: now,
-        faceVerified: existing.faceVerified,
-        imageURL: existing.imageURL,
         status: "Present",
       );
 
@@ -242,25 +213,6 @@ class AttendanceController extends GetxController {
       Get.snackbar("Error", "Failed to check out!");
     }
   }
-
-  Future<bool> isOnLeaveToday(String uid, DateTime today) async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection("leaves")
-        .where("uid", isEqualTo: uid)
-        .where("Status", isEqualTo: "Approved")
-        .get();
-
-    for (var doc in snapshot.docs) {
-      DateTime from = (doc['fromDate'] as Timestamp).toDate();
-      DateTime to = (doc['toDate'] as Timestamp).toDate();
-      if (!today.isBefore(from) && !today.isAfter(to)) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-// Existing check-in / absent logic follows
 
   /// ✅ Helpers
   bool get isCheckedInToday => todayAttendance.value?.checkInTime != null;

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../controller/leave_controller.dart';
+import '../model/leave_model.dart';
 
 class ApplyLeavePage extends StatefulWidget {
   const ApplyLeavePage({super.key});
@@ -10,32 +14,20 @@ class ApplyLeavePage extends StatefulWidget {
 
 class _ApplyLeavePageState extends State<ApplyLeavePage> {
   final _formKey = GlobalKey<FormState>();
+  final LeaveController _leaveController = Get.find<LeaveController>();
 
   String? _leaveType;
   DateTime? _startDate;
   DateTime? _endDate;
   final TextEditingController _reasonController = TextEditingController();
 
-  // ✅ Function to select date with Blue theme
+  // Date Picker
   Future<void> _pickDate(BuildContext context, bool isStart) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
       firstDate: DateTime(2020),
       lastDate: DateTime(2030),
-      builder: (context, child) {
-        return Theme(
-          data: ThemeData.light().copyWith(
-            primaryColor: Colors.blue,
-            colorScheme: const ColorScheme.light(
-              primary: Colors.blue,
-              onPrimary: Colors.white,
-              onSurface: Colors.black,
-            ),
-          ),
-          child: child!,
-        );
-      },
     );
 
     if (picked != null) {
@@ -52,56 +44,83 @@ class _ApplyLeavePageState extends State<ApplyLeavePage> {
     }
   }
 
-  // ✅ Function to show success dialog
+  // Success Bottom Sheet
   void _showSuccessDialog() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Icon(Icons.check_circle, color: Colors.blue, size: 70),
-            const SizedBox(height: 16),
-            const Text(
-              "Leave Applied Successfully",
-              textAlign: TextAlign.center,
-              style: TextStyle(
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.check_circle, color: Colors.blue, size: 70),
+              const SizedBox(height: 16),
+              const Text(
+                "Leave Applied Successfully",
+                textAlign: TextAlign.center,
+                style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: Colors.black),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  Navigator.pop(context);
-                },
-                child: const Text(
-                  "Done",
-                  style: TextStyle(color: Colors.white, fontSize: 16),
+                  color: Colors.black,
                 ),
               ),
-            )
-          ],
-        ),
-      ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx); // close bottom sheet
+                    Navigator.pop(context, true); // go back
+                  },
+                  child: const Text(
+                    "Done",
+                    style: TextStyle(color: Colors.white, fontSize: 16),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  void _applyLeave() {
+  // Apply Leave Function
+  void _applyLeave() async {
     if (_formKey.currentState!.validate()) {
       if (_leaveType != null && _startDate != null && _endDate != null) {
-        _showSuccessDialog();
+        final leave = LeaveModel(
+          uid: FirebaseAuth.instance.currentUser!.uid,
+          type: _leaveType!,
+          fromDate: _startDate!,
+          toDate: _endDate!,
+          reason: _reasonController.text.trim(),
+          status: 'Pending',
+        );
+
+        try {
+          await _leaveController.applyLeave(leave);
+          print("✅ Leave saved to Firestore");
+          if (!mounted) return;
+          _showSuccessDialog();
+        } catch (e) {
+          print("❌ Firestore error: $e");
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text("Error applying leave: $e")),
+          );
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text("Please fill all fields")),
@@ -110,7 +129,7 @@ class _ApplyLeavePageState extends State<ApplyLeavePage> {
     }
   }
 
-  // ✅ Common InputDecoration for all fields
+  // Input Decoration
   InputDecoration _fieldDecoration(String hint) {
     return InputDecoration(
       hintText: hint,
@@ -132,15 +151,13 @@ class _ApplyLeavePageState extends State<ApplyLeavePage> {
     );
   }
 
+  // UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text(
-          "Apply Leave",
-          style: TextStyle(color: Colors.black),
-        ),
+        title: const Text("Apply Leave", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.black),
@@ -153,7 +170,7 @@ class _ApplyLeavePageState extends State<ApplyLeavePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Leave Type Dropdown
+                // Leave Type
                 const Text("Leave Type",
                     style:
                         TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
@@ -162,19 +179,11 @@ class _ApplyLeavePageState extends State<ApplyLeavePage> {
                   value: _leaveType,
                   hint: const Text("Select Leave Type"),
                   decoration: _fieldDecoration("Select Leave Type"),
-                  dropdownColor: Colors.white,
-                  style: const TextStyle(fontSize: 15, color: Colors.black),
                   items: ["Annual", "Casual", "Sick"]
-                      .map((type) => DropdownMenuItem(
-                            value: type,
-                            child: Text(type),
-                          ))
+                      .map((type) =>
+                          DropdownMenuItem(value: type, child: Text(type)))
                       .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _leaveType = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => _leaveType = value),
                   validator: (value) =>
                       value == null ? "Please select leave type" : null,
                 ),
@@ -238,7 +247,7 @@ class _ApplyLeavePageState extends State<ApplyLeavePage> {
                 ),
                 const SizedBox(height: 30),
 
-                // Apply Button
+                // Submit Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -253,9 +262,10 @@ class _ApplyLeavePageState extends State<ApplyLeavePage> {
                     child: const Text(
                       "Apply Leave",
                       style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 )
