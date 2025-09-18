@@ -28,7 +28,7 @@ class _RegisterState extends State<Register> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -36,117 +36,44 @@ class _RegisterState extends State<Register> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 60),
-              Text(
-                "Create Account",
-                style: TextStyle(
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold,
-                  color: blueSteel,
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      "Create Account",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: blueSteel,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Sign up to get started",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 25),
 
-              // Full Name
               buildTextField("Full Name", _fullName, Icons.person, false),
               const SizedBox(height: 16),
-
-              // Email
               buildTextField("Email Address", _email, Icons.email, false),
               const SizedBox(height: 16),
-
-              // Password
               buildTextField("Password", _pass, Icons.lock, true),
               const SizedBox(height: 16),
-
-              // Date of Birth
-              TextField(
-                controller: _dob,
-                readOnly: true,
-                decoration: InputDecoration(
-                  hintText: "Date of Birth",
-                  prefixIcon:
-                      const Icon(Icons.calendar_today, color: Colors.black54),
-                  isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.grey.shade400),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.grey.shade400),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: blueSteel),
-                  ),
-                ),
-                onTap: () async {
-                  DateTime? pickedDate = await showDatePicker(
-                    context: context,
-                    initialDate: DateTime(2000),
-                    firstDate: DateTime(1900),
-                    lastDate: DateTime.now(),
-                  );
-                  if (pickedDate != null) {
-                    setState(() {
-                      _dob.text =
-                          "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
-                    });
-                  }
-                },
-              ),
+              buildDateField(_dob, "Date of Birth", Icons.calendar_today),
               const SizedBox(height: 16),
-
-              // Designation
               buildTextField("Designation", _designation, Icons.work, false),
               const SizedBox(height: 16),
+              buildDropdownField(),
+              const SizedBox(height: 30),
 
-              // Gender Dropdown
-              DropdownButtonFormField2<String>(
-                value: _gender,
-                items: ["Male", "Female"]
-                    .map((gender) => DropdownMenuItem(
-                          value: gender,
-                          child: Text(gender),
-                        ))
-                    .toList(),
-                onChanged: (val) {
-                  setState(() {
-                    _gender = val;
-                  });
-                },
-                decoration: InputDecoration(
-                  hintText: "Gender",
-                  prefixIcon: const Icon(Icons.people, color: Colors.black54),
-                  isDense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.grey.shade400),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: Colors.grey.shade400),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: blueSteel),
-                  ),
-                ),
-                dropdownStyleData: DropdownStyleData(
-                  isOverButton: true,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Register Button
+              // Modern Register Button
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -171,62 +98,21 @@ class _RegisterState extends State<Register> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: blueSteel,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(15),
                     ),
+                    elevation: 6,
                   ),
                   child: const Text(
                     "Register",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ),
               ),
-              const SizedBox(height: 15),
+              const SizedBox(height: 20),
 
-              // --- OR CONTINUE WITH ---
-              Row(
-                children: [
-                  Expanded(child: Divider(color: Colors.grey.shade400)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: Text(
-                      "or continue with",
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  ),
-                  Expanded(child: Divider(color: Colors.grey.shade400)),
-                ],
-              ),
-              const SizedBox(height: 15),
-
-              // Google Button
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    //  authController.signInWithGoogle();
-                  },
-                  icon: Image.asset(
-                    "images/google.JPG",
-                    height: 22,
-                  ),
-                  label: Text(
-                    "Sign in with Google",
-                    style: TextStyle(color: Colors.grey.shade800),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: BorderSide(color: Colors.grey.shade400),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 15),
-
-              // Already have an account? Login
+              // Login Link
               Center(
                 child: GestureDetector(
                   onTap: () {
@@ -259,41 +145,148 @@ class _RegisterState extends State<Register> {
     );
   }
 
+  // Modern TextField with shadow and rounded corners
   Widget buildTextField(String hint, TextEditingController controller,
       IconData icon, bool isPassword) {
-    return TextField(
-      controller: controller,
-      obscureText: isPassword ? isPasswordHidden : false,
-      decoration: InputDecoration(
-        hintText: hint,
-        prefixIcon: Icon(icon, color: Colors.black54),
-        suffixIcon: isPassword
-            ? IconButton(
-                onPressed: () {
-                  setState(() {
-                    isPasswordHidden = !isPasswordHidden;
-                  });
-                },
-                icon: Icon(
-                  isPasswordHidden ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.black54,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.25),
+            blurRadius: 6,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword ? isPasswordHidden : false,
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: Icon(icon, color: Colors.black54),
+          suffixIcon: isPassword
+              ? IconButton(
+                  onPressed: () {
+                    setState(() {
+                      isPasswordHidden = !isPasswordHidden;
+                    });
+                  },
+                  icon: Icon(
+                    isPasswordHidden ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.black54,
+                  ),
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+        ),
+      ),
+    );
+  }
+
+  // Date of Birth field with blueSteel theme
+  Widget buildDateField(
+      TextEditingController controller, String hint, IconData icon) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.25),
+            blurRadius: 6,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        readOnly: true,
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: Icon(icon, color: Colors.black54),
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
+        ),
+        onTap: () async {
+          DateTime? pickedDate = await showDatePicker(
+            context: context,
+            initialDate: DateTime(2000),
+            firstDate: DateTime(1900),
+            lastDate: DateTime.now(),
+            builder: (BuildContext context, Widget? child) {
+              return Theme(
+                data: ThemeData.light().copyWith(
+                  primaryColor: blueSteel,
+                  colorScheme: ColorScheme.light(
+                    primary: blueSteel,
+                    onPrimary: Colors.white,
+                    surface: Colors.white,
+                    onSurface: Colors.black,
+                  ),
+                  textButtonTheme: TextButtonThemeData(
+                    style: TextButton.styleFrom(
+                      foregroundColor: blueSteel,
+                    ),
+                  ),
                 ),
-              )
-            : null,
-        isDense: true,
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade400),
+                child: child!,
+              );
+            },
+          );
+          if (pickedDate != null) {
+            setState(() {
+              controller.text =
+                  "${pickedDate.day}/${pickedDate.month}/${pickedDate.year}";
+            });
+          }
+        },
+      ),
+    );
+  }
+
+  // Gender dropdown with modern style
+  Widget buildDropdownField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.25),
+            blurRadius: 6,
+            offset: const Offset(0, 4),
+          )
+        ],
+      ),
+      child: DropdownButtonFormField2<String>(
+        value: _gender,
+        items: ["Male", "Female"]
+            .map((gender) => DropdownMenuItem(
+                  value: gender,
+                  child: Text(gender),
+                ))
+            .toList(),
+        onChanged: (val) {
+          setState(() {
+            _gender = val;
+          });
+        },
+        decoration: const InputDecoration(
+          hintText: "Gender",
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(vertical: 18, horizontal: 15),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: Colors.grey.shade400),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-          borderSide: BorderSide(color: blueSteel),
+        dropdownStyleData: DropdownStyleData(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Colors.white,
+          ),
+          offset: const Offset(0, 5),
         ),
       ),
     );

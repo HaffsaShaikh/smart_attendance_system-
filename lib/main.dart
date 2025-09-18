@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:smart_attendance_system/controller/leave_controller.dart';
 import 'package:smart_attendance_system/view/splashscreen.dart';
 import 'package:smart_attendance_system/view/boardingscreen.dart';
 import 'package:smart_attendance_system/view/register.dart';
@@ -9,7 +8,6 @@ import 'package:smart_attendance_system/view/register.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  Get.put(LeaveController());
   runApp(const MyApp());
 }
 

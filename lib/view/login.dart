@@ -18,7 +18,7 @@ class _LoginState extends State<Login> {
   bool isPasswordHidden = true;
 
   final AuthController authController = Get.put(AuthController());
-  final Color blueSteel = const Color(0xFF4682B4); // theme color
+  final Color blueSteel = const Color(0xFF4682B4);
 
   @override
   void dispose() {
@@ -30,94 +30,50 @@ class _LoginState extends State<Login> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-      ),
+      backgroundColor: Colors.grey[100],
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 10),
-              Text(
-                "Login",
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  color: blueSteel,
+              const SizedBox(height: 60),
+
+              // Welcome Back Banner
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      "Welcome Back!",
+                      style: TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold,
+                        color: blueSteel,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      "Login to continue",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
                 ),
               ),
+
               const SizedBox(height: 40),
 
-              // Email
-              const Text("Email Address"),
-              const SizedBox(height: 10),
-              TextField(
-                controller: _email,
-                decoration: InputDecoration(
-                  hintText: "Email Address",
-                  prefixIcon: const Icon(Icons.email, color: Colors.grey),
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: InputBorder.none,
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: blueSteel),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
+              // Email TextField
+              buildTextField("Email Address", _email, Icons.email, false),
+              const SizedBox(height: 16),
 
-              // Password
-              const Text("Password"),
+              // Password TextField
+              buildTextField("Password", _pass, Icons.lock, true),
               const SizedBox(height: 10),
-              TextField(
-                controller: _pass,
-                obscureText: isPasswordHidden,
-                decoration: InputDecoration(
-                  hintText: "Password",
-                  prefixIcon: const Icon(Icons.lock, color: Colors.grey),
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      setState(() {
-                        isPasswordHidden = !isPasswordHidden;
-                      });
-                    },
-                    icon: Icon(
-                      isPasswordHidden
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                      color: Colors.grey,
-                    ),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey[200],
-                  border: InputBorder.none,
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(color: blueSteel),
-                  ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
 
-              // Forgot password
+              // Forgot Password
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
@@ -148,55 +104,20 @@ class _LoginState extends State<Login> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: blueSteel,
-                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(15),
                     ),
+                    elevation: 5,
                   ),
                   child: const Text(
                     "Login",
-                    style: TextStyle(color: Colors.white, fontSize: 16),
+                    style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
                 ),
               ),
 
-              const SizedBox(height: 25),
-              const Center(child: Text("or login with")),
-              const SizedBox(height: 20),
-
-              // Socials
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    height: 50,
-                    width: 50,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child:
-                        Image.asset("images/facebook.PNG", fit: BoxFit.contain),
-                  ),
-                  const SizedBox(width: 20),
-                  Container(
-                    height: 50,
-                    width: 50,
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child:
-                        Image.asset("images/google.JPG", fit: BoxFit.contain),
-                  ),
-                ],
-              ),
-
               const SizedBox(height: 30),
-
-              // Register link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -217,6 +138,48 @@ class _LoginState extends State<Login> {
               )
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  // TextField builder
+  Widget buildTextField(String hint, TextEditingController controller,
+      IconData icon, bool isPassword) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.2),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          )
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword ? isPasswordHidden : false,
+        decoration: InputDecoration(
+          hintText: hint,
+          prefixIcon: Icon(icon, color: Colors.black54),
+          suffixIcon: isPassword
+              ? IconButton(
+                  onPressed: () {
+                    setState(() {
+                      isPasswordHidden = !isPasswordHidden;
+                    });
+                  },
+                  icon: Icon(
+                    isPasswordHidden ? Icons.visibility_off : Icons.visibility,
+                    color: Colors.black54,
+                  ),
+                )
+              : null,
+          border: InputBorder.none,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 18, horizontal: 15),
         ),
       ),
     );

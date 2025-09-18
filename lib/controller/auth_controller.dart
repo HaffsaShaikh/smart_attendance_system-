@@ -10,8 +10,44 @@ import 'package:smart_attendance_system/view/login.dart';
 class AuthController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _database = FirebaseFirestore.instance;
+  FirebaseFirestore get database => _database;
+  User? get currentUser => _auth.currentUser;
+  RxString fullName = ''.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    loadUserName();
+  }
+
+  Future<void> loadUserName() async {
+    try {
+      String uid = _auth.currentUser!.uid;
+      DocumentSnapshot doc = await _database.collection('users').doc(uid).get();
+      if (doc.exists) {
+        Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+        fullName.value = data["profile"]["fullName"] ?? 'Unknown';
+      }
+    } catch (e) {
+      print("Error fetching user name: $e");
+    }
+  }
+
+  Future<void> updateUserName(String newName) async {
+    try {
+      String uid = _auth.currentUser!.uid;
+      await _database.collection('users').doc(uid).update({
+        'profile.fullName': newName,
+      });
+      fullName.value = newName; // Update reactive variable
+    } catch (e) {
+      print("Error updating name: $e");
+      Get.snackbar('Error', 'Failed to update name');
+    }
+  }
 
   /// -------------------- LOGIN --------------------
+
   Future<void> loginUser(String email, String pass) async {
     try {
       UserCredential userCredential =
@@ -27,10 +63,20 @@ class AuthController extends GetxController {
         }
 
         final userDoc = await _database.collection('users').doc(user.uid).get();
-        if (userDoc.exists && userDoc['role'] == 'admin') {
-          Get.offAll(() => const Admin());
-        } else {
-          Get.offAll(() => const Homescreen());
+        if (userDoc.exists) {
+          // Check if admin
+          if (userDoc['role'] == 'admin') {
+            Get.offAll(() => const AdminPanelPage());
+          }
+          // Check if regular user is approved
+          else if (userDoc['role'] == 'user' && userDoc['isApproved'] == true) {
+            Get.offAll(() => const Homescreen());
+          } else {
+            // User not approved yet
+            Get.snackbar('Access Denied',
+                'Your registration is still pending. Please wait for admin approval.');
+            await _auth.signOut(); // logout user
+          }
         }
       }
     } on FirebaseAuthException catch (e) {
@@ -61,10 +107,12 @@ class AuthController extends GetxController {
       User? user = userCredential.user;
 
       if (user != null) {
+        // Save user in Firestore with isApproved = false
         await _database.collection('users').doc(user.uid).set({
           'userID': user.uid,
           'email': user.email,
           'role': 'user',
+          'isApproved': false, // new field
           'profile': {
             'fullName': fullName,
             'dateOfBirth': dob,
@@ -83,19 +131,6 @@ class AuthController extends GetxController {
       }
     } on FirebaseAuthException catch (e) {
       Get.snackbar("Registration Failed", e.message ?? e.toString());
-    } catch (e) {
-      Get.snackbar("Error", e.toString());
-    }
-  }
-
-  /// -------------------- UPDATE PROFILE PICTURE --------------------
-  Future<void> updateProfilePicture(String imageUrl) async {
-    try {
-      String uid = _auth.currentUser!.uid;
-      await _database.collection("users").doc(uid).update({
-        'profilePicture': imageUrl,
-      });
-      Get.snackbar("Success", "Profile picture updated!");
     } catch (e) {
       Get.snackbar("Error", e.toString());
     }

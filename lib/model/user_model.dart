@@ -7,6 +7,7 @@ class UserModel {
   final String designation;
   final String profileImage;
   final String profilePicture;
+  final bool isApproved;
 
   UserModel({
     required this.userID,
@@ -17,6 +18,7 @@ class UserModel {
     required this.designation,
     required this.profileImage,
     required this.profilePicture,
+    required this.isApproved,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
@@ -30,6 +32,7 @@ class UserModel {
       designation: profile['designation'] ?? '',
       profileImage: map['image'] ?? '',
       profilePicture: map['profilePicture'] ?? '',
+      isApproved: map['isApproved'] ?? false,
     );
   }
 
@@ -38,6 +41,7 @@ class UserModel {
       'userID': userID,
       'email': email,
       'role': "user",
+      'isApproved': isApproved,
       'profile': {
         'fullName': fullName,
         'dateOfBirth': dateOfBirth,

@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -23,8 +22,9 @@ class _HomescreenState extends State<Homescreen> {
 
   String? userName;
   bool isLoading = true;
+  int _selectedIndex = 0;
 
-  int _selectedIndex = 0; // BottomNavigationBar index
+  final Color blueSteel = const Color(0xFF4682B4);
 
   @override
   void initState() {
@@ -43,15 +43,13 @@ class _HomescreenState extends State<Homescreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-
-      // ✅ Only BottomNavigationBar in main Scaffold
+      backgroundColor: Colors.grey[100],
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.black,
+        selectedItemColor: blueSteel,
+        unselectedItemColor: Colors.black54,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(
@@ -59,69 +57,76 @@ class _HomescreenState extends State<Homescreen> {
           BottomNavigationBarItem(icon: Icon(Icons.person), label: "Me"),
         ],
       ),
-
-      // ✅ Body switcher
       body: _getBody(),
     );
   }
 
-  // ✅ Switch content based on selected tab
   Widget _getBody() {
     if (_selectedIndex == 0) {
-      return _homeContent(); // Home with AppBar
+      return _homeContent();
     } else if (_selectedIndex == 1) {
-      return LeaveRecordPage(); // Leave page without AppBar
+      return LeaveDashboardPage();
     } else {
-      return ProfilePage(); // Profile page without AppBar
+      return ProfilePage();
     }
   }
 
-  // ✅ Home content including AppBar
   Widget _homeContent() {
     return Obx(() => Column(
           children: [
-            // ✅ Home AppBar
-            SizedBox(
-              height: 20,
-            ),
+            // Custom Header
             Container(
-              color: Colors.white,
+              width: double.infinity,
               padding: const EdgeInsets.only(
-                  top: 40, left: 16, right: 16, bottom: 16),
+                  top: 50, bottom: 20, left: 20, right: 20),
+              decoration: BoxDecoration(
+                color: blueSteel,
+                borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(25),
+                    bottomRight: Radius.circular(25)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  )
+                ],
+              ),
               child: Row(
                 children: [
                   CircleAvatar(
-                    radius: 25,
-                    backgroundColor: Colors.blue.shade100,
-                    child:
-                        const Icon(Icons.person, color: Colors.blue, size: 22),
+                    radius: 28,
+                    backgroundColor: Colors.white,
+                    child: Icon(Icons.person, color: blueSteel, size: 28),
                   ),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: 12),
                   isLoading
-                      ? const CircularProgressIndicator()
+                      ? const CircularProgressIndicator(color: Colors.white)
                       : Text(
-                          userName ?? "User",
+                          " ${userName ?? "User"}",
                           style: const TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.w600),
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold),
                         ),
                   const Spacer(),
                   IconButton(
                     onPressed: () {},
                     icon: const Icon(Icons.notifications_none,
-                        color: Colors.black),
-                  ),
+                        color: Colors.white),
+                  )
                 ],
               ),
             ),
 
-            // ✅ Home content scrollable
+            // Main content
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Check In / Check Out Cards
+                    // Check In/Out Cards
                     Row(
                       children: [
                         Expanded(
@@ -151,7 +156,6 @@ class _HomescreenState extends State<Homescreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 24),
 
                     // Summary Cards
@@ -182,7 +186,6 @@ class _HomescreenState extends State<Homescreen> {
                         ),
                       ],
                     ),
-
                     const SizedBox(height: 24),
 
                     // Activity Header
@@ -199,16 +202,15 @@ class _HomescreenState extends State<Homescreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => AttendancePage(),
-                              ),
+                                  builder: (_) => AttendanceRecords()),
                             );
                           },
-                          child: const Text(
+                          child: Text(
                             "View All",
                             style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.blue),
+                                color: blueSteel),
                           ),
                         ),
                       ],
@@ -225,9 +227,9 @@ class _HomescreenState extends State<Homescreen> {
                       return _buildActivityTile(date, status, color);
                     }).toList(),
 
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
 
-                    // Swipe Button
+                    // Slide to Check In/Out
                     SlideAction(
                       text: _attendanceController.isCheckedInToday &&
                               !_attendanceController.isCheckedOutToday
@@ -240,7 +242,7 @@ class _HomescreenState extends State<Homescreen> {
                       outerColor: _attendanceController.isCheckedInToday &&
                               !_attendanceController.isCheckedOutToday
                           ? Colors.red
-                          : Colors.blue,
+                          : blueSteel,
                       innerColor: Colors.white,
                       sliderButtonIcon: Icon(
                         _attendanceController.isCheckedInToday &&
@@ -250,7 +252,7 @@ class _HomescreenState extends State<Homescreen> {
                         color: _attendanceController.isCheckedInToday &&
                                 !_attendanceController.isCheckedOutToday
                             ? Colors.red
-                            : Colors.blue,
+                            : blueSteel,
                       ),
                       sliderRotate: false,
                       onSubmit: () async {
@@ -270,36 +272,37 @@ class _HomescreenState extends State<Homescreen> {
         ));
   }
 
-  // Check In/Out Card
   Widget _buildCard({IconData? icon, String? title, String? time}) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              blurRadius: 6,
+              offset: const Offset(0, 3))
+        ],
       ),
       child: Column(
         children: [
-          if (icon != null) Icon(icon, color: Colors.blue, size: 28),
+          if (icon != null) Icon(icon, color: blueSteel, size: 28),
           if (icon != null) const SizedBox(height: 10),
           if (title != null)
             Text(title,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                    color: Colors.black)),
+                style:
+                    const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
           if (time != null) ...[
             const SizedBox(height: 4),
             Text(time,
                 style: const TextStyle(color: Colors.black54, fontSize: 14)),
-          ],
+          ]
         ],
       ),
     );
   }
 
-  // Summary Card
   Widget _buildSummaryCard(
       {required String value, required String title, required Color color}) {
     return Container(
@@ -307,7 +310,12 @@ class _HomescreenState extends State<Homescreen> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade300, width: 1.2),
+        boxShadow: [
+          BoxShadow(
+              color: Colors.grey.withOpacity(0.2),
+              blurRadius: 6,
+              offset: const Offset(0, 3))
+        ],
       ),
       child: Column(
         children: [
@@ -326,7 +334,6 @@ class _HomescreenState extends State<Homescreen> {
     );
   }
 
-  // Activity Tile
   Widget _buildActivityTile(String date, String status, Color color) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),

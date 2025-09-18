@@ -51,12 +51,12 @@ class AttendanceController extends GetxController {
         todayAttendance.value = AttendanceModel(
           uid: uid,
           date: now,
-          status: "Pending", // Default before 12 PM
+          status: "Absent",
         );
 
-        // ⏰ Only mark absent if it's past 12:00 PM
-        final twelvePM = DateTime(now.year, now.month, now.day, 12, 0, 0);
-        if (now.isAfter(twelvePM)) {
+        // ⏰ Only mark absent if it's past 12:00 AM
+        final twelveAM = DateTime(now.year, now.month, now.day, 0, 0, 0);
+        if (now.isAfter(twelveAM)) {
           final absentModel = AttendanceModel(
             uid: uid,
             date: now,

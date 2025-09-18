@@ -42,15 +42,15 @@ dependencies:
   firebase_core: 
   firebase_auth:
   cloud_firestore: 
-  google_sign_in:
   camera:
   firebase_storage: 
-  google_mlkit_face_detection: 
-  image_picker:
+  image_picker: 
   dropdown_button2: 
   intl: 
   slide_to_act: 
   font_awesome_flutter: 
+  google_sign_in: 
+  flutter_month_picker: 
 
 
 

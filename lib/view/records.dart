@@ -4,24 +4,30 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../model/attendance_model.dart';
 
-class AttendancePage extends StatefulWidget {
-  const AttendancePage({super.key});
+class AttendanceRecords extends StatefulWidget {
+  const AttendanceRecords({super.key});
 
   @override
-  State<AttendancePage> createState() => _AttendancePageState();
+  State<AttendanceRecords> createState() => _AttendanceRecordsState();
 }
 
-class _AttendancePageState extends State<AttendancePage> {
+class _AttendanceRecordsState extends State<AttendanceRecords> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late Future<List<AttendanceModel>> _recordsFuture;
+
+  final Color blueSteel = const Color(0xFF4682B4);
 
   @override
   void initState() {
     super.initState();
-    _recordsFuture = loadAllRecords();
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      _recordsFuture = loadAllRecords();
+    } else {
+      _recordsFuture = Future.value([]);
+    }
   }
 
-  // ✅ Load only last 7 days for current user
   Future<List<AttendanceModel>> loadAllRecords() async {
     try {
       final uid = FirebaseAuth.instance.currentUser?.uid;
@@ -50,82 +56,113 @@ class _AttendancePageState extends State<AttendancePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        title: const Text("Attendance Records"),
-        backgroundColor: Colors.white,
+        backgroundColor: blueSteel,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          "Attendance Records",
+          style: TextStyle(
+              fontSize: 18, fontWeight: FontWeight.w600, color: Colors.white),
+        ),
+        centerTitle: false, // title on the same line as arrow
       ),
-      body: FutureBuilder<List<AttendanceModel>>(
-        future: _recordsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: SafeArea(
+        child: FutureBuilder<List<AttendanceModel>>(
+          future: _recordsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (snapshot.hasError) {
-            return Center(
-                child: Text(
-                    "Error loading records: ${snapshot.error.toString()}"));
-          }
+            if (snapshot.hasError) {
+              return Center(
+                  child: Text(
+                      "Error loading records: ${snapshot.error.toString()}"));
+            }
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("No attendance records found"));
-          }
+            final records = snapshot.data;
+            if (records == null || records.isEmpty) {
+              return const Center(child: Text("No attendance records found"));
+            }
 
-          final records = snapshot.data!;
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: records.length,
+              itemBuilder: (context, index) {
+                final a = records[index];
+                String date = DateFormat('EEE, d MMM yyyy').format(a.date);
+                String checkIn = a.checkInTime != null
+                    ? DateFormat.jm().format(a.checkInTime!)
+                    : "--:--";
+                String checkOut = a.checkOutTime != null
+                    ? DateFormat.jm().format(a.checkOutTime!)
+                    : "--:--";
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(12),
-            itemCount: records.length,
-            itemBuilder: (context, index) {
-              final a = records[index];
-              String date = DateFormat('EEE, d MMM yyyy').format(a.date);
-              String checkIn = a.checkInTime != null
-                  ? DateFormat.jm().format(a.checkInTime!)
-                  : "--:--";
-              String checkOut = a.checkOutTime != null
-                  ? DateFormat.jm().format(a.checkOutTime!)
-                  : "--:--";
+                Color color;
+                if (a.status == "Present") {
+                  color = Colors.green;
+                } else if (a.status == "Absent") {
+                  color = Colors.red;
+                } else {
+                  color = Colors.grey;
+                }
 
-              Color color;
-              if (a.status == "Present") {
-                color = Colors.green;
-              } else if (a.status == "Absent") {
-                color = Colors.red;
-              } else {
-                color = Colors.grey;
-              }
-
-              return Card(
-                margin: const EdgeInsets.symmetric(vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                elevation: 2,
-                child: ListTile(
-                  leading: Icon(
-                    a.status == "Present" ? Icons.check_circle : Icons.cancel,
-                    color: color,
-                    size: 30,
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 6,
+                        offset: Offset(0, 3),
+                      )
+                    ],
                   ),
-                  title: Text(
-                    date,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.w600, fontSize: 16),
-                  ),
-                  subtitle: Text("In: $checkIn | Out: $checkOut"),
-                  trailing: Text(
-                    a.status,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    leading: Icon(
+                      a.status == "Present" ? Icons.check_circle : Icons.cancel,
                       color: color,
+                      size: 32,
+                    ),
+                    title: Text(
+                      date,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600, fontSize: 16),
+                    ),
+                    subtitle: Text(
+                      "In: $checkIn | Out: $checkOut",
+                      style: const TextStyle(color: Colors.black54),
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: color.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        a.status,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: color,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              );
-            },
-          );
-        },
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }

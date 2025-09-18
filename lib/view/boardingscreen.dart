@@ -70,16 +70,21 @@ class _BoardingscreenState extends State<Boardingscreen> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                TextButton(
-                  onPressed: () => _controller.jumpToPage(2),
-                  child: const Text(
-                    "Skip",
-                    style: TextStyle(
-                      color: Color(0xFF4682B4),
-                      fontWeight: FontWeight.bold,
+                // Skip sirf tab dikhe jab last page na ho
+                if (!lastPage)
+                  TextButton(
+                    onPressed: () => _controller.jumpToPage(2),
+                    child: const Text(
+                      "Skip",
+                      style: TextStyle(
+                        color: Color(0xFF4682B4),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ),
+                  )
+                else
+                  const SizedBox(width: 60), // alignment maintain karne ke liye
+
                 SmoothPageIndicator(
                   controller: _controller,
                   count: 3,
@@ -104,11 +109,12 @@ class _BoardingscreenState extends State<Boardingscreen> {
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF4682B4),
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 10),
+                          horizontal: 28, vertical: 14),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                        side: const BorderSide(color: Color(0xFF4682B4)),
+                        borderRadius: BorderRadius.circular(30),
                       ),
+                      elevation: 5,
+                      shadowColor: Colors.black45,
                     ),
                     onPressed: () {
                       Navigator.pushReplacementNamed(context, '/register');
@@ -116,7 +122,7 @@ class _BoardingscreenState extends State<Boardingscreen> {
                     child: const Text(
                       "Get Started",
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),

@@ -14,9 +14,10 @@ class AttendanceModel {
     required this.date,
     this.checkInTime,
     this.checkOutTime,
-    this.status = "Absent",
+    this.status = "Absent", // default value
   });
 
+  // Convert model to Map for Firestore
   Map<String, dynamic> toMap() {
     return {
       "uid": uid,
@@ -29,10 +30,11 @@ class AttendanceModel {
     };
   }
 
+  // Create AttendanceModel from Firestore map
   factory AttendanceModel.fromMap(Map<String, dynamic> map, String docId) {
     return AttendanceModel(
       id: docId,
-      uid: map['uid'],
+      uid: map['uid'] ?? '',
       date: (map['date'] as Timestamp).toDate(),
       checkInTime: map['checkInTime'] != null
           ? (map['checkInTime'] as Timestamp).toDate()
